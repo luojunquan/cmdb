@@ -1,0 +1,31 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>登陆页面</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap-3.3.7-dist/css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'user/login.css' %}" />
+  </head>
+
+  <body>
+    <div class="container">
+      <form class="form-signin" action="{% url 'user:login' %}" method="POST">
+        <h2 class="form-signin-heading">用户登陆</h2>
+
+        {% if errors %}
+          {% for key, error in errors.items %}
+            <div class="alert alert-danger" role="alert">{{ error }}</div>
+          {% endfor %}
+        {% endif %}
+        {% csrf_token %}
+
+        <label for="name" class="sr-only">用户名</label>
+        <input type="name" id="name" class="form-control" name="name" placeholder="用户名" value="{{ name }}"/>
+        <label for="password" class="sr-only">密码</label>
+        <input type="password" id="password" class="form-control"  name="password" placeholder="密码" />
+        <button class="btn btn-lg btn-primary btn-block" type="submit">登陆</button>
+      </form>
+    </div> <!-- /container -->
+  </body>
+</html>
