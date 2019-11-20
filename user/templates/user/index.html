@@ -129,7 +129,6 @@
                       <input type="text"class="form-control"  name="tel" value=""/>
                   </div>
               </div>
-
               <div class="form-group">
                   <label class="control-label col-md-3">年龄：</label>
                   <div class="col-md-9">
@@ -295,13 +294,11 @@ jQuery('#table_user').on('click', '.btn-edit-user', function() {
         form.find('[name=name]').val(result['result']['name']);
         form.find('[name=tel]').val(result['result']['tel']);
         form.find('[name=age]').val(result['result']['age']);
-        
         if(result['result']['sex']) {
           form.find('[name=sex][value=1]').prop('checked', true);
         } else {
           form.find('[name=sex][value=0]').prop('checked', true);
         }
-        
         jQuery('#dialog-edit-user').modal({
           show: true,
           backdrop: 'static',
@@ -323,11 +320,9 @@ jQuery('#table_user').on('click', '.btn-edit-user', function() {
     }
   }, 'json');
 });
-
-jQuery('.btn-update-user').on('click', function() {
+ jQuery('.btn-update-user').on('click', function() {
   var data = jQuery('.form-edit-user').serializeArray();
   jQuery.post("{% url 'user:update_ajax' %}", data, function(result) {
-      console.log(result);
       if(result['code'] == 200) {
           swal({
                 title: "成功", 

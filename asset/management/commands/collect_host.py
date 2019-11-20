@@ -22,7 +22,6 @@ class ResultCallback(CallbackBase):
     def v2_runner_on_ok(self, result, **kwargs):
         if result.task_name == 'collect_host':
             self.collect_host(result._result)
-
     def collect_host(self, result):
         facts = result.get('ansible_facts', {})
         ip = facts.get('ansible_default_ipv4', {}).get('address', '')
@@ -32,12 +31,10 @@ class ResultCallback(CallbackBase):
         arch = facts.get('ansible_architecture', '')
         mem = facts.get('ansible_memtotal_mb', '')
         cpu = facts.get('ansible_processor_vcpus', '')
-
         disk = [{'name': i.get('device'), 'total': int(i.get('size_total')) / 1024 / 1024} for i in
                 facts.get('ansible_mounts', [])]
         # disk = {i.get('device') : int(i.get('size_total')) / 1024 / 1024 for i in facts.get('ansible_mounts', [])}
         Host.create_or_replace(ip, name, mac, os, arch, mem, cpu, json.dumps(disk))
-
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
@@ -79,5 +76,4 @@ class Command(BaseCommand):
         finally:
             if tqm is not None:
                 tqm.cleanup()
-
             shutil.rmtree(C.DEFAULT_LOCAL_TMP, True)

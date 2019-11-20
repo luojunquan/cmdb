@@ -135,7 +135,6 @@ def get_ajax(request):
 def update_ajax(request):
     if not request.session.get('user'):
         return JsonResponse({'code' : 403})
-
     is_valid, user, errors = UserValidator.valid_update(request.POST)
     if is_valid:
         user.save()

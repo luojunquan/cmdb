@@ -50,7 +50,6 @@ class UserValidator(Validator):
         is_valid = True
         user = None
         errors = {}
-
         try:
             user = User.objects.get(pk=params.get('id', '').strip())
         except BaseException as e:

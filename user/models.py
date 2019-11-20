@@ -1,7 +1,6 @@
 #encoding: utf-8
 
 import hashlib
-
 from django.db import models
 
 

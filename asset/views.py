@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 from django.core.exceptions import ObjectDoesNotExist
 
 from django.utils import timezone
-
+from  .validators import AssetValidator
 from .models import Host, Resource
 
 def index(request):
@@ -33,7 +33,7 @@ def delete_ajax(request):
         pass
     return JsonResponse({'code' : 200})
 
-
+#点击编辑按钮时获取服务器信息
 def get_ajax(request):
     if not request.session.get('user'):
         return JsonResponse({'code' : 403, 'result' : []})
@@ -44,27 +44,35 @@ def get_ajax(request):
     except ObjectDoesNotExist as e:
         return JsonResponse({'code' : 400})
 
+#dialog编辑完成以后进行更新提交
+def update_ajax(request):
+    if not request.session.get('user'):
+        return JsonResponse({'code' : 403})
+    print(request.POST)
+    is_valid, asset, errors = AssetValidator.valid_update(request.POST)
+    if is_valid:
+        asset.save()
+        return JsonResponse({'code' : 200})
+    else:
+        return JsonResponse({'code' : 400, 'errors' : errors})
 
 def resource_ajax(request):
     if not request.session.get('user'):
-        return JsonResponse({'code' : 403, 'result' : []})
-
+        return JsonResponse({'code': 403, 'result': []})
     try:
         _id = request.GET.get('id', 0)
         host = Host.objects.get(pk=_id)
         end_time = timezone.now()
-        start_time = end_time - timedelta(days=1) 
-        
+        start_time = end_time - timedelta(days=1)
         resources = Resource.objects.filter(ip=host.ip, created_time__gte=start_time).order_by('created_time')
-        
         tmp_resources = {}
         for resource in resources:
-            tmp_resources[resource.created_time.strftime('%Y-%m-%d %H:%M')] = {'cpu' : resource.cpu, 'mem': resource.mem}
-        
+            tmp_resources[resource.created_time.strftime('%Y-%m-%d %H:%M')] = {'cpu': resource.cpu, 'mem': resource.mem}
+
         xAxis = []
         CPU_datas = []
         MEM_datas = []
-        
+
         while start_time <= end_time:
             key = start_time.strftime('%Y-%m-%d %H:%M')
             resource = tmp_resources.get(key, {})
@@ -73,14 +81,11 @@ def resource_ajax(request):
             MEM_datas.append(resource.get('mem', 0))
             start_time += timedelta(minutes=1)
 
-
-
         # for resource in resources:
         #     xAxis.append(time.strftime('%Y-%m-%d %H:%M', time.localtime(resource.created_time.timestamp())))
         #     CPU_datas.append(resource.cpu)
         #     MEM_datas.append(resource.mem)
 
-        
-        return JsonResponse({'code' : 200, 'result' : {'xAxis' : xAxis, 'CPU_datas' : CPU_datas, 'MEM_datas' : MEM_datas}})
+        return JsonResponse({'code': 200, 'result': {'xAxis': xAxis, 'CPU_datas': CPU_datas, 'MEM_datas': MEM_datas}})
     except ObjectDoesNotExist as e:
-        return JsonResponse({'code' : 400})
+        return JsonResponse({'code': 400})

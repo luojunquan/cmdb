@@ -48,11 +48,26 @@ class Host(models.Model):
         return obj
 
     def as_dict(self):
-        rt = {}
-        for k, v in self.__dict__.items():
-            if isinstance(v, (int, float, bool, str, datetime.datetime)):
-                rt[k] = v
-        return rt
+        return {
+            'id':self.id,
+            'ip':self.ip,
+            'name':self.name,
+            'os':self.os,
+            'cpu':self.cpu,
+            'mac': self.mac,
+            'arch':self.arch,
+            'mem':self.mem,
+            'disk':self.disk,
+            'purchase_time':self.purchase_time,
+            'over_insurance_time':self.over_insurance_time,
+            'created_time':self.created_time,
+            'last_time':self.last_time,
+        }
+        # rt = {}
+        # for k, v in self.__dict__.items():
+        #     if isinstance(v, (int, float, bool, str, datetime.datetime)):
+        #         rt[k] = v
+        # return rt
 
 
 class Resource(models.Model):

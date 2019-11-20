@@ -25,7 +25,7 @@
 {% endblock %}
 
 {% block dialogs %}
-<div class="modal fade dialog-view" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+<div class="modal fade dialog-view" id="dialog-edit-asset" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
         <div class="modal-header">
@@ -33,24 +33,30 @@
             <h4 class="modal-title" id="myModalLabel">编辑</h4>
         </div>
         <div class="modal-body">
-            <form id="form-view" class="form-horizontal">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="name" class="col-sm-2 control-label">名称</label>
-                    <div class="col-sm-10">
-                        <input type="text" class="form-control" name="name" />
-                    </div>
-                </div>
-            </form>
+            <form class="form-horizontal form-edit-asset">
+              {% csrf_token %}
+              <input type="hidden" name="id" value="" />
+              <div class="form-group">
+                  <label class="control-label col-md-3">名称</label>
+                  <div class="col-md-9">
+                      <input type="text" class="form-control" name="name" value=""/>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label class="control-label col-md-3">操作系统</label>
+                  <div class="col-md-9">
+                      <input type="text"class="form-control"  name="os" value=""/>
+                  </div>
+              </div>
+          </form>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-            <button type="button" class="btn btn-primary">编辑</button>
+            <button type="button" class="btn btn-primary btn-update-asset">更新</button>
         </div>
     </div>
   </div>
 </div>
-
 <div class="modal fade dialog-resource" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
@@ -120,32 +126,18 @@ var table = jQuery('#table_asset').DataTable({
                 return row['name'] + '(' + row['ip'] + ')';
             }
         },
-        {
-            "data" : "os"
-        },
-        {
-            "data" : "arch"
-        },
-        {
-            "data" : "mem"
-        },
-        {
-            "data" : "cpu"
-        },
-        {
-            "data" : "disk"
-        },
-        {
-            "data" : "created_time"
-        },
-        {
-            "data" : "last_time"
-        },
+        {"data" : "os"},
+        {"data" : "arch"},
+        {"data" : "mem"},
+        {"data" : "cpu"},
+        {"data" : "disk"},
+        {"data" : "created_time"},
+        {"data" : "last_time"},
         {
             "data" : function(row) {
                 return '<a class="btn btn-info btn-xs btn-resource-asset" href="javascript:void(0)" data-id="' + row['id'] + '">监控</a> ' +
                 '<a class="btn btn-success btn-xs btn-edit-asset" href="javascript:void(0)" data-id="' + row['id'] + '">编辑</a> ' + 
-                '<a class="btn btn-danger btn-xs btn-delete-asset" data-id="' + row['id'] + '" href="javascript:void(0)">删除</a>';
+                '<a class="btn btn-danger btn-xs btn-delete-asset" href="javascript:void(0)" data-id="' + row['id'] + '" >删除</a>';
             }
         },
     ]
@@ -153,12 +145,67 @@ var table = jQuery('#table_asset').DataTable({
 
 jQuery('#table_asset').on('click', '.btn-edit-asset', function() {
     var id = jQuery(this).attr('data-id');
+    var form = jQuery('.form-edit-asset');
     jQuery.get('{% url "asset:get_ajax" %}', {'id' : id}, function(result) {
         if(result['code'] == 200) {
-            jQuery('#form-view').find('[name=name]').val(result['result']['name']);
+            form.find('[name=id]').val(result['result']['id']);
+            form.find('[name=name]').val(result['result']['name']);
+            form.find('[name=os]').val(result['result']['os']);
             jQuery('.dialog-view').modal('show');
-        }
+        jQuery('#dialog-edit-asset').modal({
+            show: true,
+            backdrop: 'static',
+            keyboard: false
+        });
+        } else if(result['code'] == 400) {
+                var errors = [];
+         jQuery.each(result['errors'], function(k, v) {
+            errors.push(v);
+        });
+        swal("验证失败:", errors.join('\n'),"error")
+    } else if(result['code'] == 403) {
+        swal({
+            title: "未登录",
+            text: "",
+            timer: 2000,
+            showConfirmButton: false
+        });
+     }
     }, 'json');
+});
+{# 将用户编辑的内容进行更新#}
+jQuery('.btn-update-asset').on('click', function() {
+  var data = jQuery('.form-edit-asset').serializeArray();
+  jQuery.post("{% url 'asset:update_ajax' %}", data, function(result) {
+      if(result['code'] == 200) {
+          swal({
+                title: "成功",
+                text: "",
+                type: "success",
+                closeOnConfirm: false
+              }, function() {
+                  jQuery('#dialog-create-asset').modal('hide');
+                  //关闭sweetalert
+                  swal.close();
+                  /*刷新table*/
+                  window.location.reload()
+              });
+
+      } else if(result['code'] == 400) {
+          var errors = [];
+          jQuery.each(result['errors'], function(k, v) {
+              errors.push(v);
+          });
+          swal("验证失败:", errors.join('\n'),"error")
+      } else if(result['code'] == 403) {
+          swal({
+              title: "未登录",
+              text: "",
+              timer: 2000,
+              showConfirmButton: false
+          });
+      }
+  }, 'json');
 });
 
 var chart_resource = echarts.init(document.getElementById('chart-resource'));
@@ -244,7 +291,6 @@ jQuery('.dialog-resource').on('hidden.bs.modal', function (e) {
 
 jQuery('#table_asset').on('click', '.btn-delete-asset', function() {
     var id = jQuery(this).attr('data-id');
-
     swal({ 
         title: "确定删除吗？", 
         text: "", 
