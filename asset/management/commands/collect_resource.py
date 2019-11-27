@@ -47,7 +47,7 @@ class Command(BaseCommand):
         inventory = InventoryManager(loader=loader, sources=os.path.join(settings.BASE_DIR, 'etc', 'hosts'))
         variable_manager = VariableManager(loader=loader, inventory=inventory)
 
-        path_resource = '/tmp/resource.psutil.cmdb.py'
+        path_resource = '/tmp/resource.cmdb.py'
 
         play_source =  {
                 'name' : "cmdb",
@@ -60,7 +60,7 @@ class Command(BaseCommand):
                     },
                     {
                         'name' : 'copyfile',
-                        'copy' : 'src={0} dest={1}'.format(os.path.join(settings.BASE_DIR, 'etc', 'resource.psutil.py'), path_resource)
+                        'copy' : 'src={0} dest={1}'.format(os.path.join(settings.BASE_DIR, 'etc', 'resource.py'), path_resource)
                     },
                     {
                         'name' : 'collect_resource',

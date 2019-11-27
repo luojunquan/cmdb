@@ -14,8 +14,8 @@ if __name__ == '__main__':
     mem_line = lines[3]
     mem = mem_line.split()
     
-    mem = 100 * float(mem[3][:-1]) / float(mem[1][:-1])
-
+    # mem = 100 * float(mem[3][:-1]) / float(mem[1][:-1])
+    mem = round(100*(float(mem[7])/float(mem[3])),2)
     print(cpu)
     print(mem)
 

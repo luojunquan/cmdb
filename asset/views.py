@@ -56,6 +56,7 @@ def update_ajax(request):
     else:
         return JsonResponse({'code' : 400, 'errors' : errors})
 
+#echarts监控传给前台的数据
 def resource_ajax(request):
     if not request.session.get('user'):
         return JsonResponse({'code': 403, 'result': []})
@@ -63,12 +64,14 @@ def resource_ajax(request):
         _id = request.GET.get('id', 0)
         host = Host.objects.get(pk=_id)
         end_time = timezone.now()
-        start_time = end_time - timedelta(days=1)
+        #获取最近6小时的数据
+        start_time = end_time - timedelta(hours=6)
+        # order_by进行排序，升序
         resources = Resource.objects.filter(ip=host.ip, created_time__gte=start_time).order_by('created_time')
+        # 转换成key和value===》time:{cpu、内存}===》{'2019-11-27 15:48': {'cpu': 7.0, 'mem': 67.71}}
         tmp_resources = {}
         for resource in resources:
             tmp_resources[resource.created_time.strftime('%Y-%m-%d %H:%M')] = {'cpu': resource.cpu, 'mem': resource.mem}
-
         xAxis = []
         CPU_datas = []
         MEM_datas = []
@@ -79,7 +82,8 @@ def resource_ajax(request):
             xAxis.append(key)
             CPU_datas.append(resource.get('cpu', 0))
             MEM_datas.append(resource.get('mem', 0))
-            start_time += timedelta(minutes=1)
+            # X轴每5分钟显示一次数据
+            start_time += timedelta(minutes=5)
 
         # for resource in resources:
         #     xAxis.append(time.strftime('%Y-%m-%d %H:%M', time.localtime(resource.created_time.timestamp())))
