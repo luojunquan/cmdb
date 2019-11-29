@@ -8,7 +8,8 @@
 <table id="table_asset" class="table table-striped table-bordered table-hover table-condensed">
     <thead>
         <tr>
-            <th>名称(IP)</th>
+            <th>主机名</th>
+            <th>IP地址</th>
             <th>操作系统</th>
             <th>架构</th>
             <th>内存</th>
@@ -73,7 +74,37 @@
     </div>
   </div>
 </div>
-
+<div class="modal fade dialog-resource-alarm" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">最近20条报警</h4>
+        </div>
+        <div class="modal-body ">
+              {% csrf_token %}
+              <input type="hidden" name="id" value="" />
+              <table class="table table-bordered table-hover table-striped table-condensed table_resourse_alarm">
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>内容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                             <td ><input type="text"  style="border:0" name="alarm_time" size="15" readonly/></td>
+                            <td ><input type="text"   style="border:0"name="alarm_ip" size="25" readonly/></td>
+                        </tr>
+                    </tbody>
+                </table>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+        </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -123,7 +154,12 @@ var table = jQuery('#table_asset').DataTable({
     columns : [
         {
             "data" : function(row, type, set, meta) {
-                return row['name'] + '(' + row['ip'] + ')';
+                return row['name'];
+            }
+        },
+    {
+            "data" : function(row, type, set, meta) {
+                return row['ip'];
             }
         },
         {"data" : "os"},
@@ -136,6 +172,7 @@ var table = jQuery('#table_asset').DataTable({
         {
             "data" : function(row) {
                 return '<a class="btn btn-info btn-xs btn-resource-asset" href="javascript:void(0)" data-id="' + row['id'] + '">监控</a> ' +
+                '<a class="btn btn-info btn-xs btn-resource-alarm" href="javascript:void(0)" data-id="' + row['id'] + '">告警</a> ' +
                 '<a class="btn btn-success btn-xs btn-edit-asset" href="javascript:void(0)" data-id="' + row['id'] + '">编辑</a> ' + 
                 '<a class="btn btn-danger btn-xs btn-delete-asset" href="javascript:void(0)" data-id="' + row['id'] + '" >删除</a>';
             }
@@ -254,14 +291,13 @@ var chart_resource_option = {
 };
 
 var th = null;
-
 function reload_resource_chart(id) {
+{#    '_' : (new Date()).getTime()添加一个时间戳，防止ajax缓存#}
     jQuery.get('{% url 'asset:resource_ajax' %}', {'id' : id, '_' : (new Date()).getTime()}, function(result) {
         if(result['code'] == 200) {
             chart_resource_option['xAxis']['data'] = result['result']['xAxis'];
             chart_resource_option['series'][0]['data'] = result['result']['CPU_datas'];
             chart_resource_option['series'][1]['data'] = result['result']['MEM_datas'];
-
             chart_resource.setOption(chart_resource_option);
         }
     }, 'json');
@@ -269,21 +305,19 @@ function reload_resource_chart(id) {
 
 jQuery('#table_asset').on('click', '.btn-resource-asset', function() {
     var id = jQuery(this).data('id'); //jQuery(this).attr('data-id');
-    
+{#    打开dialog直接刷新#}
     reload_resource_chart(id);
+{#判断Interval的值，如果值为空，则每5秒刷新一次#}
     if(th === null) {
         th = setInterval(function() {
             reload_resource_chart(id);
         }, 5 * 1000);
     }
-
     jQuery('.dialog-resource').modal('show');
 });
-
+{#当关闭dialog的时候，如果Interval的值不为空，直接将其指定为空#}
 jQuery('.dialog-resource').on('hidden.bs.modal', function (e) {
-    console.log('close dialog');
     if(th !== null) {
-        console.log('clearInterval:' + th);
         clearInterval(th);
         th = null;
     }
@@ -322,4 +356,41 @@ jQuery('#table_asset').on('click', '.btn-delete-asset', function() {
     });
     
 });
+
+{#    点击告警弹出告警框#}
+jQuery('#table_asset').on('click', '.btn-resource-alarm', function() {
+    var id = jQuery(this).attr('data-id');
+    var form = jQuery('.table_resourse_alarm');
+    jQuery.get('{% url "asset:get_alarm" %}', {'id' : id}, function(result) {
+        if(result['code'] == 200) {
+             form.find('[name=alarm_time]').val(result['result']['now_time']);
+             form.find('[name=alarm_ip]').val('连续30分钟CPU使用率超过％６');
+            jQuery('.dialog-resource-alarm').modal('show');
+        jQuery('#dialog-resource-alarm').modal({
+            show: true,
+            backdrop: 'static',
+            keyboard: false
+        });
+        } else if(result['code'] == 400) {
+                var errors = [];
+         jQuery.each(result['errors'], function(k, v) {
+            errors.push(v);
+        });
+        swal("验证失败:", errors.join('\n'),"error")
+    } else if(result['code'] == 403) {
+        swal({
+            title: "未登录",
+            text: "",
+            timer: 2000,
+            showConfirmButton: false
+        });
+     }else if(result['code'] == 303) {
+        swal("此服务器连续30分钟没有告警！")
+     }
+    }, 'json');
+});
+
 {% endblock %}
+{#通过sql语句查询与当前时间相隔10分钟以内的数据。#}
+{#select ip,count(*) from asset_resource where (created_time between date_add(now(), #}
+{#interval - 10 minute) and  now()) and cpu>6 group by ip having count(*) >2;#}
