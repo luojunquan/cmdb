@@ -34,11 +34,14 @@
     <div class="col-md-6">
         <div id="dist_status_code" style="width: 100%;height: 300px"></div>
     </div>
-        <div class="col-md-6">
+    <div class="col-md-6">
         <div id="trend_visit" style="width: 100%;height: 300px"></div>
     </div>
-        <div class="col-md-6">
+    <div class="col-md-6">
         <div id="request_user_ip" style="width: 100%;height: 600px"></div>
+    </div>
+     <div class="col-md-6">
+        <div id="http_request_user_host" style="width: 100%;height: 600px"></div>
     </div>
     </div>
 {% endblock %}
@@ -51,6 +54,7 @@
     var chart_dist_status_code = echarts.init(document.getElementById('dist_status_code'));
     var chart_trend_visit = echarts.init(document.getElementById('trend_visit'));
     var chart_request_user_ip = echarts.init(document.getElementById('request_user_ip'));
+    var chart_http_request_user_host = echarts.init(document.getElementById('http_request_user_host'));
     var option_dist_status_code = {
     title : {
         text: '请求状态码分布',
@@ -155,7 +159,7 @@
 
     var option_request_user_ip = option = {
     title : {
-        text: '用户IP数量图'
+        text: '用户IP请求数图'
     },
     tooltip : {
         trigger: 'axis'
@@ -209,16 +213,63 @@
         }
     ]
 };
+    var option_http_request_user_host = {
+    title : {
+        text: 'IP多次请求缓存向用户吐出的流量值',
+    },
+    tooltip : {
+        trigger: 'axis'
+    },
+    legend: {
+        data:[]
+    },
+    toolbox: {
+        show : true,
+         x: 'right',
+         y: 'center',
+        orient : 'vertical',
+        feature : {
+            mark : {show: true},
+            dataView : {show: true, readOnly: false},
+            magicType: {show: true, type: ['line', 'bar']},
+            restore : {show: true},
+            saveAsImage : {show: true}
+        }
+    },
+    calculable : true,
+    xAxis : [
+        {
+            type : 'value',
+            boundaryGap : [0, 0.01]
+        }
+    ],
+    yAxis : [
+        {
+            type : 'category',
+            data : []
+        }
+    ],
+    series : [
+        {
+            name:'多次请求向用户吐出的流量总值',
+            type:'bar',
+            data:[]
+        }
+    ]
+};
+
     function reload(){
         var id = jQuery('#accesslog_file').val();
         reload_dist_status_code(id);
         reload_trend_visit(id);
         reload_request_user_ip(id);
+        reload_http_request_user_host(id);
     }
 {#    将ajax获取到的值传到data上面的option_dist_status_code#}
     function reload_dist_status_code(id){
         jQuery.get("{% url 'webanalysis:dist_status_code' %}",{'id':id},function(result){
             if (200 ==  result['code']){
+                chart_dist_status_code.clear();
                 option_dist_status_code['legend']['data'] = result['result']['legend'];
                 option_dist_status_code['series'][0]['data'] = result['result']['series'];
                 chart_dist_status_code.setOption(option_dist_status_code);
@@ -238,11 +289,26 @@
     function reload_request_user_ip(id){
         jQuery.get("{% url 'webanalysis:request_user_ip' %}",{'id':id},function(result){
              if (200 ==  result['code']){
+{#                画图的时候clear下#}
                 chart_request_user_ip.clear();
                 option_request_user_ip['xAxis'][0]['data'] = result['result']['xAxis'];
                 option_request_user_ip['series'][0]['data'] = result['result']['series'];
                 chart_request_user_ip.setOption(option_request_user_ip);
         }
     },'json')};
+
+    function reload_http_request_user_host (id){
+        jQuery.get("{% url 'webanalysis:http_request_user_host' %}",{'id':id},function(result){
+             if (200 ==  result['code']){
+                chart_http_request_user_host.clear();
+                option_http_request_user_host['yAxis'][0]['data'] = result['result']['yAxis'];
+                option_http_request_user_host['series'][0]['data'] = result['result']['series'];
+                chart_http_request_user_host.setOption(option_http_request_user_host);
+        }
+    },'json')};
     reload();
+{#    当更改下拉框的时候重载#}
+    jQuery('#accesslog_file').on('change',function(){
+        reload();
+    });
 {% endblock %}

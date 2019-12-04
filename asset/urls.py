@@ -11,4 +11,5 @@ urlpatterns = [
     path('get/ajax/', views.get_ajax, name='get_ajax'),
     path('resource/ajax/', views.resource_ajax, name='resource_ajax'),
     path('update/ajax/', views.update_ajax, name="update_ajax"),
+    path('get/alarm/', views.get_alarm, name="get_alarm"),
 ]

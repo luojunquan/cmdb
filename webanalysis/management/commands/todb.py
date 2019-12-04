@@ -40,7 +40,8 @@ class Command(BaseCommand):
             # print(fhandler)
             for line in fhandler:
                 try:
-                    nodes = line.split('|')
+                    #若读取的content中头部出现\ufeff,则在后面增加encode('utf-8').decode('utf-8-sig')
+                    nodes = line.encode('utf-8').decode('utf-8-sig').split('|')
                     log = AccessLog()
                     log.file_id = file_id
                     log.hostname = nodes[63]

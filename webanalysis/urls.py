@@ -9,4 +9,5 @@ urlpatterns = [
     path('dist_status_code/',views.dist_status_code,name='dist_status_code'),
     path('trend_visit/',views.trend_visit,name='trend_visit'),
     path('request_user_ip/',views.request_user_ip,name='request_user_ip'),
+    path('http_request_user_host/',views.http_request_user_host,name='http_request_user_host'),
 ]

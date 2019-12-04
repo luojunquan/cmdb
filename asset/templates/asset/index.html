@@ -108,7 +108,8 @@
 {% endblock %}
 
 {% block scripts %}
-<script type="text/javascript" src="{% static 'echarts/echarts.min.js' %}" ></script>
+{#<script type="text/javascript" src="{% static 'echarts/echarts.min.js' %}" ></script>#}
+    <script type="text/javascript" src="{% static 'echarts-2.2.7/build/dist/echarts-all.js' %}"></script>
 {% endblock %}
 
 {% block js %}
@@ -385,7 +386,7 @@ jQuery('#table_asset').on('click', '.btn-resource-alarm', function() {
             showConfirmButton: false
         });
      }else if(result['code'] == 303) {
-        swal("此服务器连续30分钟没有告警！")
+        swal("此服务器连续60分钟没有告警！")
      }
     }, 'json');
 });

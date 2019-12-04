@@ -32,6 +32,7 @@
           <ul class="nav navbar-nav">
             <li class="{% block nav_user %}{% endblock %}"><a href="{% url 'user:index' %}">用户管理</a></li>
             <li class="{% block nav_asset %}{% endblock %}"><a href="{% url 'asset:index' %}">资产管理</a></li>
+           <li class="{% block nav_webanalysis %}{% endblock %}"><a href="{% url 'webanalysis:index' %}">Web日志分析</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li><a>当前登陆用户是:{{ request.session.user.name }}</a></li>

@@ -205,7 +205,6 @@ jQuery('.btn-save-user').on('click', function() {
     var data = jQuery('.form-create-user').serializeArray();
 
     jQuery.post("{% url 'user:create_ajax' %}", data, function(result) {
-        console.log(result);
         if(result['code'] == 200) {
             swal({
                   title: "成功", 
@@ -254,7 +253,6 @@ jQuery('#table_user').on('click', '.btn-delete-user', function() {
     function(){ 
         //提交ajax删除数据
         jQuery.get("{% url 'user:delete_ajax' %}", {'id' : id}, function(result) {
-          console.log(result);
           if(result['code'] == 200) {
               swal({
                   title: "成功", 
@@ -288,6 +286,7 @@ jQuery('#table_user').on('click', '.btn-delete-user', function() {
 jQuery('#table_user').on('click', '.btn-edit-user', function() {
   var id = jQuery(this).attr('data-id');
   var form = jQuery('.form-edit-user');
+    console.log(form);
   jQuery.get("{% url 'user:get_ajax' %}", {'id' : id}, function(result) {
     if(result['code'] == 200) {
         form.find('[name=id]').val(result['result']['id']);

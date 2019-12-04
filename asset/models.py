@@ -3,6 +3,7 @@
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
+from django.db import connection
 import datetime
 
 class Host(models.Model):
