@@ -7,14 +7,16 @@ from django.core.exceptions import ObjectDoesNotExist
 from .models import User
 from .validators import UserValidator
 
+
+def loading(request):
+    return redirect('user:login')
+
 def index(request):
     if not request.session.get('user'):
         return redirect('user:login')
-
     return render(request, 'user/index.html', {
         'users' : User.objects.all()
     })
-
 
 def login(request):
     if 'GET' == request.method:
@@ -32,11 +34,9 @@ def login(request):
                 'errors' : {'default' : '用户名或密码错误'}
             })
 
-
 def logout(request):
     request.session.flush()
     return redirect('user:login')
-
 
 def delete(request):
     if not request.session.get('user'):
@@ -47,7 +47,6 @@ def delete(request):
 
     return redirect('user:index')
 
-
 def view(request):
     if not request.session.get('user'):
         return redirect('user:login')
@@ -56,7 +55,6 @@ def view(request):
     return render(request, 'user/view.html', {
         'user' : User.objects.get(pk=uid)
     })
-
 
 def update(request):
     if not request.session.get('user'):
@@ -71,7 +69,6 @@ def update(request):
             'user' : user,
             'errors' : errors,
             })
-
 
 def create(request):
     if not request.session.get('user'):
@@ -100,8 +97,8 @@ def create(request):
 }
 '''
 def create_ajax(request):
-    if not request.session.get('user'):
-        return JsonResponse({'code' : 403})
+    # if not request.session.get('user'):
+    #     return JsonResponse({'code' : 403})
 
     is_valid, user, errors = UserValidator.valid_create(request.POST)
     if is_valid:

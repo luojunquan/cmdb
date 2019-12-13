@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'user.apps.UserConfig',
     'asset.apps.AssetConfig',
     'webanalysis.apps.WebanalysisConfig',
+    'api.apps.ApiConfig',
 ]
 
 MIDDLEWARE = [
@@ -85,9 +86,7 @@ DATABASES = {
         'USER': 'root',
         'PASSWORD': 'Admin123!',
         'CHARSET': 'utf8',
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
-        }
+         'OPTIONS':{'init_command':'SET sql_mode="traditional",default_storage_engine=INNODB;'}
     }
 }
 
@@ -129,6 +128,8 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# STATIC_ROOT = os.path.join(BASE_DIR,'www','static')
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static/')

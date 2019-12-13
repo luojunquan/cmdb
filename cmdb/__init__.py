@@ -1,0 +1,3 @@
+#python3.5以后使用pymysql，不需要安装mysqlclient，pip安装pymysql以后需要添加以下两行
+import pymysql
+pymysql.install_as_MySQLdb()
